@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Events — EventMS</title>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="/"><span>🎪</span> EventMS</a>
+  <button class="hamburger" onclick="document.getElementById('navMenu').classList.toggle('open')">☰</button>
+  <ul class="navbar-nav" id="navMenu">
+    <li><a href="/">🏠 Home</a></li>
+    <li><a href="/events-page" class="active">📅 Events</a></li>
+    <li><a href="/participants-page">👥 Participants</a></li>
+    <li><a href="/registrations-page">📋 Registrations</a></li>
+  </ul>
+</nav>
+
+<main>
+  <div class="page-header">
+    <h1>📅 Event Management</h1>
+    <p>Create, search, and manage all events.</p>
+  </div>
+
+  <div id="alert-container"></div>
+
+  <!-- Add Event Form -->
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div class="card-header"><h2>➕ Add New Event</h2></div>
+    <div class="card-body">
+      <form id="add-event-form" onsubmit="return false;">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Event Name *</label>
+            <input type="text" id="ev-name" placeholder="Enter event name" required/>
+          </div>
+          <div class="form-group">
+            <label>Event Type *</label>
+            <select id="ev-type" required>
+              <option value="">-- Select Type --</option>
+              <option>Conference</option>
+              <option>Workshop</option>
+              <option>Seminar</option>
+              <option>Cultural</option>
+              <option>Sports</option>
+              <option>Networking</option>
+              <option>Exhibition</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Event Date *</label>
+            <input type="date" id="ev-date" required/>
+          </div>
+          <div class="form-group">
+            <label>Event Time *</label>
+            <input type="time" id="ev-time" required/>
+          </div>
+          <div class="form-group">
+            <label>Location *</label>
+            <input type="text" id="ev-location" placeholder="Venue / City" required/>
+          </div>
+          <div class="form-group">
+            <label>Capacity *</label>
+            <input type="number" id="ev-capacity" placeholder="Max attendees" min="1" required/>
+          </div>
+          <div class="form-group form-full">
+            <label>Description</label>
+            <textarea id="ev-description" placeholder="Brief description of the event…"></textarea>
+          </div>
+        </div>
+        <div style="margin-top:1rem;">
+          <button class="btn btn-primary" onclick="addEvent()">➕ Add Event</button>
+          <button class="btn btn-secondary" onclick="clearEventForm()">🔄 Clear</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Search & Filter -->
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div class="card-header">
+      <h2>🔍 Search Events</h2>
+    </div>
+    <div class="card-body">
+      <div class="search-bar">
+        <input type="text" id="search-name" placeholder="Search by name…"/>
+        <select id="search-type">
+          <option value="">All Types</option>
+          <option>Conference</option>
+          <option>Workshop</option>
+          <option>Seminar</option>
+          <option>Cultural</option>
+          <option>Sports</option>
+          <option>Networking</option>
+          <option>Exhibition</option>
+          <option>Other</option>
+        </select>
+        <button class="btn btn-primary" onclick="searchEvents()">🔍 Search</button>
+        <button class="btn btn-secondary" onclick="loadEvents()">🔄 Reset</button>
+        <button class="btn btn-warning" onclick="loadUpcoming()">🔔 Upcoming</button>
+        <button class="btn btn-success" onclick="loadAvailable()">✅ Available</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Events Table -->
+  <div class="card">
+    <div class="card-header">
+      <h2>📋 All Events</h2>
+      <span id="event-count" class="badge badge-info">Loading…</span>
+    </div>
+    <div class="card-body" style="padding:0;">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Event Name</th>
+              <th>Type</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Location</th>
+              <th>Capacity</th>
+              <th>Registered</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="events-table-body">
+            <tr><td colspan="9" class="empty-state"><div class="icon">⏳</div><p>Loading events…</p></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <strong>Event Management System</strong> &copy; 2025 — Built with FastAPI &amp; MySQL
+</footer>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>✏️ Edit Event</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <input type="hidden" id="edit-ev-id"/>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Event Name</label>
+        <input type="text" id="edit-ev-name"/>
+      </div>
+      <div class="form-group">
+        <label>Event Type</label>
+        <select id="edit-ev-type">
+          <option>Conference</option><option>Workshop</option><option>Seminar</option>
+          <option>Cultural</option><option>Sports</option><option>Networking</option>
+          <option>Exhibition</option><option>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="edit-ev-date"/>
+      </div>
+      <div class="form-group">
+        <label>Time</label>
+        <input type="time" id="edit-ev-time"/>
+      </div>
+      <div class="form-group">
+        <label>Location</label>
+        <input type="text" id="edit-ev-location"/>
+      </div>
+      <div class="form-group">
+        <label>Capacity</label>
+        <input type="number" id="edit-ev-capacity" min="1"/>
+      </div>
+      <div class="form-group form-full">
+        <label>Description</label>
+        <textarea id="edit-ev-description"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="updateEvent()">💾 Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/js/events.js"></script>
+</body>
+</html>

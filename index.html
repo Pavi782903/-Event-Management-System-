@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Event Management System</title>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="/"><span>🎪</span> EventMS</a>
+  <button class="hamburger" onclick="toggleNav()">☰</button>
+  <ul class="navbar-nav" id="navMenu">
+    <li><a href="/" class="active">🏠 Home</a></li>
+    <li><a href="/events-page">📅 Events</a></li>
+    <li><a href="/participants-page">👥 Participants</a></li>
+    <li><a href="/registrations-page">📋 Registrations</a></li>
+  </ul>
+</nav>
+
+<main>
+  <div class="page-header">
+    <h1>🏠 Dashboard</h1>
+    <p>Welcome to the Event Management System — your central hub for managing events and participants.</p>
+  </div>
+
+  <div id="alert-container"></div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon blue">📅</div>
+      <div class="stat-info">
+        <h3 id="total-events">—</h3>
+        <p>Total Events</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon purple">👥</div>
+      <div class="stat-info">
+        <h3 id="total-participants">—</h3>
+        <p>Total Participants</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green">📋</div>
+      <div class="stat-info">
+        <h3 id="total-registrations">—</h3>
+        <p>Total Registrations</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon orange">🔔</div>
+      <div class="stat-info">
+        <h3 id="upcoming-count">—</h3>
+        <p>Upcoming Events</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="gap:1.5rem; margin-bottom:1.5rem;">
+    <!-- Upcoming Events -->
+    <div class="card">
+      <div class="card-header">
+        <h2>🔔 Upcoming Events</h2>
+        <a href="/events-page" class="btn btn-primary btn-sm">View All</a>
+      </div>
+      <div class="card-body">
+        <div id="upcoming-events-list"><div class="empty-state"><div class="icon">⏳</div><p>Loading…</p></div></div>
+      </div>
+    </div>
+
+    <!-- Available Events -->
+    <div class="card">
+      <div class="card-header">
+        <h2>✅ Available Events</h2>
+        <a href="/registrations-page" class="btn btn-success btn-sm">Register</a>
+      </div>
+      <div class="card-body">
+        <div id="available-events-list"><div class="empty-state"><div class="icon">⏳</div><p>Loading…</p></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Links -->
+  <div class="card">
+    <div class="card-header"><h2>⚡ Quick Actions</h2></div>
+    <div class="card-body">
+      <div class="btn-group">
+        <a href="/events-page" class="btn btn-primary">➕ Add Event</a>
+        <a href="/participants-page" class="btn btn-success">➕ Add Participant</a>
+        <a href="/registrations-page" class="btn btn-warning">📋 Register Participant</a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <strong>Event Management System</strong> &copy; 2025 — Built with FastAPI &amp; MySQL
+</footer>
+
+<script>
+  function toggleNav() {
+    document.getElementById('navMenu').classList.toggle('open');
+  }
+
+  async function loadDashboard() {
+    try {
+      const res = await fetch('/dashboard/stats');
+      const data = await res.json();
+      document.getElementById('total-events').textContent = data.total_events;
+      document.getElementById('total-participants').textContent = data.total_participants;
+      document.getElementById('total-registrations').textContent = data.total_registrations;
+    } catch (e) { console.error(e); }
+  }
+
+  async function loadUpcoming() {
+    const el = document.getElementById('upcoming-events-list');
+    try {
+      const res = await fetch('/events/upcoming');
+      const data = await res.json();
+      document.getElementById('upcoming-count').textContent = data.length;
+      if (!data.length) { el.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No upcoming events</p></div>'; return; }
+      el.innerHTML = data.slice(0,5).map(e => `
+        <div class="event-card" style="margin-bottom:0.75rem;">
+          <div class="event-card-header">
+            <h3>${e.event_name}</h3>
+            <span class="badge badge-info">${e.event_type}</span>
+          </div>
+          <p class="meta">📅 ${e.event_date} &nbsp; ⏰ ${e.event_time}</p>
+          <p class="meta">📍 ${e.location}</p>
+          <p class="meta">👥 Capacity: ${e.capacity}</p>
+        </div>`).join('');
+    } catch (e) { el.innerHTML = '<div class="empty-state"><div class="icon">❌</div><p>Failed to load</p></div>'; }
+  }
+
+  async function loadAvailable() {
+    const el = document.getElementById('available-events-list');
+    try {
+      const res = await fetch('/events/available');
+      const data = await res.json();
+      if (!data.length) { el.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No available events</p></div>'; return; }
+      el.innerHTML = data.slice(0,5).map(e => {
+        const pct = Math.round((e.registered_count / e.capacity) * 100);
+        return `
+        <div class="event-card" style="margin-bottom:0.75rem;">
+          <div class="event-card-header">
+            <h3>${e.event_name}</h3>
+            <span class="badge badge-success">Open</span>
+          </div>
+          <p class="meta">📅 ${e.event_date} &nbsp; 📍 ${e.location}</p>
+          <p class="meta">👥 ${e.registered_count} / ${e.capacity} registered</p>
+          <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+        </div>`}).join('');
+    } catch (e) { el.innerHTML = '<div class="empty-state"><div class="icon">❌</div><p>Failed to load</p></div>'; }
+  }
+
+  loadDashboard();
+  loadUpcoming();
+  loadAvailable();
+</script>
+</body>
+</html>

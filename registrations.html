@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Registrations — EventMS</title>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="/"><span>🎪</span> EventMS</a>
+  <button class="hamburger" onclick="document.getElementById('navMenu').classList.toggle('open')">☰</button>
+  <ul class="navbar-nav" id="navMenu">
+    <li><a href="/">🏠 Home</a></li>
+    <li><a href="/events-page">📅 Events</a></li>
+    <li><a href="/participants-page">👥 Participants</a></li>
+    <li><a href="/registrations-page" class="active">📋 Registrations</a></li>
+  </ul>
+</nav>
+
+<main>
+  <div class="page-header">
+    <h1>📋 Registration Management</h1>
+    <p>Register participants for events and manage registration status.</p>
+  </div>
+
+  <div id="alert-container"></div>
+
+  <!-- Register Form -->
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div class="card-header"><h2>➕ Register Participant for Event</h2></div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Select Event *</label>
+          <select id="reg-event" required>
+            <option value="">-- Choose Event --</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Select Participant *</label>
+          <select id="reg-participant" required>
+            <option value="">-- Choose Participant --</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Registration Date *</label>
+          <input type="date" id="reg-date" required/>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="reg-status">
+            <option value="Registered">Registered</option>
+            <option value="Confirmed">Confirmed</option>
+            <option value="Waitlisted">Waitlisted</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:1rem;">
+        <button class="btn btn-primary" onclick="registerParticipant()">📋 Register</button>
+        <button class="btn btn-secondary" onclick="clearRegForm()">🔄 Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search -->
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div class="card-header"><h2>🔍 Search Registrations</h2></div>
+    <div class="card-body">
+      <div class="search-bar">
+        <input type="text" id="search-reg-participant" placeholder="Search by participant name…"/>
+        <input type="text" id="search-reg-event" placeholder="Search by event name…"/>
+        <button class="btn btn-primary" onclick="searchRegistrations()">🔍 Search</button>
+        <button class="btn btn-secondary" onclick="loadRegistrations()">🔄 Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="card">
+    <div class="card-header">
+      <h2>📋 All Registrations</h2>
+      <span id="reg-count" class="badge badge-info">Loading…</span>
+    </div>
+    <div class="card-body" style="padding:0;">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Event</th>
+              <th>Participant</th>
+              <th>Email</th>
+              <th>Reg. Date</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="registrations-table-body">
+            <tr><td colspan="7"><div class="empty-state"><div class="icon">⏳</div><p>Loading…</p></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <strong>Event Management System</strong> &copy; 2025 — Built with FastAPI &amp; MySQL
+</footer>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>✏️ Update Registration</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <input type="hidden" id="edit-reg-id"/>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Status</label>
+        <select id="edit-reg-status">
+          <option value="Registered">Registered</option>
+          <option value="Confirmed">Confirmed</option>
+          <option value="Waitlisted">Waitlisted</option>
+          <option value="Attended">Attended</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Registration Date</label>
+        <input type="date" id="edit-reg-date"/>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="updateRegistration()">💾 Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/js/registrations.js"></script>
+</body>
+</html>
